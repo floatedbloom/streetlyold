@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'history.dart';
+import 'others.dart';
 import 'you.dart';
 
 class Home extends StatefulWidget {
@@ -11,16 +11,34 @@ class Home extends StatefulWidget {
 
 class HomeState extends State<Home> {
   int _selectedIndex = 0;
+  late PageController _pageController;
 
   static const List<Widget> _pages = [
     You(),
-    History(),
+    Others(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -33,19 +51,19 @@ class HomeState extends State<Home> {
           centerTitle: true,
         ),
         body: PageView(
-          controller: PageController(initialPage: _selectedIndex),
+          controller: _pageController,
           onPageChanged: _onItemTapped,
           children: _pages,
         ),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              icon: Icon(Icons.person),
               label: 'You',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'History',
+              icon: Icon(Icons.people),
+              label: 'Others',
             ),
           ],
           currentIndex: _selectedIndex,

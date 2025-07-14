@@ -1,4 +1,4 @@
-package com.example.streetpass
+package com.example.streetly
 
 import io.flutter.embedding.android.FlutterActivity
 

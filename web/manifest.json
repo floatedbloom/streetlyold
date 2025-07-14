@@ -1,6 +1,6 @@
 {
-    "name": "streetpass",
-    "short_name": "streetpass",
+    "name": "streetly",
+    "short_name": "streetly",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

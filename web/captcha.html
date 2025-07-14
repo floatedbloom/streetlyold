@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; frame-src 'self' https:; connect-src 'self' https:;">
+    <title>Captcha Security Verification</title>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .captcha-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .h-captcha {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #captcha-widget {
+            margin: 0;
+            padding: 0;
+            line-height: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 400px) {
+            body {
+                padding: 0;
+            }
+            .captcha-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="captcha-container">
+        <div id="captcha-widget"></div>
+        <div id="error-message" class="error-message">
+            Failed to load security verification. Please refresh and try again.
+        </div>
+    </div>
+
+    <script>
+        // Extract site key from URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            if (message) {
+                errorDiv.textContent = message;
+            }
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        // Main captcha functionality
+        function initializeCaptcha() {
+            const siteKey = getUrlParameter('sitekey');
+            
+            if (!siteKey) {
+                showError('Site key not provided. Please contact support.');
+                return;
+            }
+
+            try {
+                // Render hCaptcha widget
+                window.hcaptcha.render('captcha-widget', {
+                    sitekey: siteKey,
+                    callback: onCaptchaSuccess,
+                    'error-callback': onCaptchaError,
+                    'expired-callback': onCaptchaExpired,
+                    'chalexpired-callback': onCaptchaExpired,
+                    size: 'normal',
+                    theme: 'light'
+                });
+                
+                hideError();
+            } catch (error) {
+                console.error('hCaptcha initialization error:', error);
+                showError('Failed to initialize security verification.');
+            }
+        }
+
+        function onCaptchaSuccess(token) {
+            console.log('hCaptcha completed successfully');
+            hideError();
+            
+            // Send token back to Flutter app
+            if (window.Captcha && typeof window.Captcha.postMessage === 'function') {
+                window.Captcha.postMessage(token);
+            } else {
+                console.log('Captcha token:', token);
+                // Fallback for testing
+                alert('Captcha completed! Token: ' + token.substring(0, 20) + '...');
+            }
+        }
+
+        function onCaptchaError(error) {
+            console.error('hCaptcha error:', error);
+            showError('Security verification failed. Please try again.');
+        }
+
+        function onCaptchaExpired() {
+            console.log('hCaptcha expired');
+            showError('Security verification expired. Please try again.');
+        }
+
+        // Initialize when hCaptcha API is ready
+        function onHCaptchaReady() {
+            initializeCaptcha();
+        }
+
+        // Fallback initialization
+        window.addEventListener('load', function() {
+            if (window.hcaptcha) {
+                initializeCaptcha();
+            } else {
+                // Wait a bit more for hCaptcha to load
+                setTimeout(function() {
+                    if (window.hcaptcha) {
+                        initializeCaptcha();
+                    } else {
+                        showError('Failed to load security verification service.');
+                    }
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

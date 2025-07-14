@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- needed for supabase api-->
     <application
-        android:label="streetpass"
+        android:label="streetly"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
